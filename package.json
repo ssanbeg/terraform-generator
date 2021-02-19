@@ -1,6 +1,6 @@
 {
   "name": "terraform-generator",
-  "version": "2.1.4",
+  "version": "4.8.2",
   "author": "Chang Zhe Jiet",
   "description": "Generate Terraform configurations with Node.js.",
   "keywords": [
@@ -19,48 +19,40 @@
     "type": "git",
     "url": "https://github.com/ahzhezhe/terraform-generator"
   },
+  "funding": "https://www.paypal.me/ahzhezhe",
   "license": "ISC",
   "files": [
+    ".github/FUNDING.yml",
     "dist/**/*"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "eslint src/**/*.ts test/**/*.ts",
-    "lint-mac": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "eslint src/*.ts src/**/*.ts test/**/*.ts",
     "test": "jest",
     "tryout": "ts-node tryout.ts",
     "build": "del-cli --force dist && tsc",
     "prepublishOnly": "npm run build",
     "postpublish": "del-cli --force dist",
-    "postversion": "git push"
+    "postversion": "git push",
+    "postinstall": "github-sponsors"
   },
   "dependencies": {
+    "github-sponsors": "^1.0.1",
+    "replace-string": "^3.1.0",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
-    "@types/jest": "^25.2.1",
-    "@types/shelljs": "^0.8.7",
-    "@typescript-eslint/eslint-plugin": "^2.31.0",
-    "@typescript-eslint/parser": "^2.31.0",
-    "del-cli": "^3.0.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.20.2",
-    "jest": "^25.5.4",
-    "ts-jest": "^25.4.0",
-    "ts-node": "^8.10.1",
-    "typescript": "^3.8.3"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testRegex": "test\\.ts$",
-    "collectCoverage": true,
-    "coverageDirectory": "./test/__coverage__",
-    "coveragePathIgnorePatterns": [
-      "node_modules",
-      "test"
-    ]
+    "@types/jest": "^26.0.20",
+    "@types/shelljs": "^0.8.8",
+    "@typescript-eslint/eslint-plugin": "^4.14.2",
+    "@typescript-eslint/parser": "^4.14.2",
+    "del-cli": "^3.0.1",
+    "eslint": "^7.19.0",
+    "eslint-plugin-import": "^2.22.1",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
   }
 }

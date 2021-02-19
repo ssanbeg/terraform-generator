@@ -1,6 +1,6 @@
 import { Block, Argument, Attribute } from '..';
 
-export default class Data extends Block {
+export class Data extends Block {
 
   readonly type: string;
   readonly name: string;
@@ -8,12 +8,12 @@ export default class Data extends Block {
   /**
    * Construct data source.
    * Refer to Terraform documentation on what can be put as type & arguments.
-   * 
+   *
    * @param type type
    * @param name name
    * @param args arguments
    */
-  constructor(type: string, name: string, args?: object) {
+  constructor(type: string, name: string, args?: Record<string, any>) {
     super('data', [type, name], args);
 
     this.type = type;

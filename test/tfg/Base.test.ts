@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import TerraformGenerator, { TerraformVersion, Resource, Map, map } from '../../src';
+import TerraformGenerator, { Resource, Map } from '../../src';
 
 const project = 'test';
 
@@ -62,10 +62,10 @@ const getTags = (type: string, name?: string, tier?: string): Map => new Map({
   Env: configs.env
 });
 
-const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator => {
+const createTerraformGenerator = (): TerraformGenerator => {
   // Terraform
-  const tfg = new TerraformGenerator({ version }, {
-    required_version: `= ${version}`
+  const tfg = new TerraformGenerator({
+    required_version: '= 0.12'
   });
 
   tfg.backend('s3', {
@@ -79,25 +79,6 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
     region: 'ap-southeast-1',
     profile: 'test'
   });
-
-  // For test only
-  tfg.variable('test', {
-    type: 'string'
-  });
-  tfg.data('aws_vpc', 'test', {
-    cidr_block: 'test'
-  });
-  tfg.module('test', {
-    source: './test'
-  });
-  const r = tfg.resource('aws_vpc', 'test', {
-    cidr_block: 'test',
-    tags: map({
-      a: 'a'
-    })
-  });
-  tfg.dataFromResource(r, null, ['cidr_block', ['tags', 'tag']]);
-  tfg.dataFromResource(r, { name: 'test2' }, ['cidr_block', ['tags', 'tag']]);
 
   // VPC
   const vpc = tfg.resource('aws_vpc', 'vpc', {
@@ -118,7 +99,7 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
     for (let i = 0; i < tier.subnetCidrs.length; i++) {
       const name = `${tier.name}${i}`;
       const subnet = tfg.resource('aws_subnet', name, {
-        vpc_id: vpc.attr('id'),
+        vpc_id: vpc.id,
         cidr_block: tier.subnetCidrs[i],
         availability_zone: getAvailabilityZone(i),
         tags: getTags('subnet', name)
@@ -143,22 +124,22 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
 
   // Internet gateway
   const igw = tfg.resource('aws_internet_gateway', 'igw', {
-    vpc_id: vpc.attr('id'),
+    vpc_id: vpc.id,
     tags: getTags('igw')
   });
 
   // Route tables
   const rtDefault = tfg.resource('aws_route_table', 'default', {
-    vpc_id: vpc.attr('id'),
+    vpc_id: vpc.id,
     tags: getTags('rt', 'default')
   });
 
   const rtIgw = tfg.resource('aws_route_table', 'igw', {
-    vpc_id: vpc.attr('id'),
+    vpc_id: vpc.id,
     route: [
       {
         cidr_block: '0.0.0.0/0',
-        gateway_id: igw.attr('id')
+        gateway_id: igw.id
       }
     ],
     tags: getTags('rt', 'igw')
@@ -166,15 +147,15 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
 
   webSubnets.concat(appSubnets, gutSubnets, dbSubnets, itSubnets).forEach(subnet => {
     tfg.resource('aws_route_table_association', `default-${subnet.name}`, {
-      subnet_id: subnet.attr('id'),
-      route_table_id: rtDefault.attr('id')
+      subnet_id: subnet.id,
+      route_table_id: rtDefault.id
     });
   });
 
   publicSubnets.forEach(subnet => {
     tfg.resource('aws_route_table_association', `igw-${subnet.name}`, {
-      subnet_id: subnet.attr('id'),
-      route_table_id: rtIgw.attr('id')
+      subnet_id: subnet.id,
+      route_table_id: rtIgw.id
     });
   });
 
@@ -210,16 +191,16 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
   ];
 
   tfg.resource('aws_network_acl', 'default', {
-    vpc_id: vpc.attr('id'),
-    subnet_ids: publicSubnets.concat(webSubnets, appSubnets, gutSubnets, itSubnets, mgtSubnets).map(subnet => subnet.attr('id')),
+    vpc_id: vpc.id,
+    subnet_ids: publicSubnets.concat(webSubnets, appSubnets, gutSubnets, itSubnets, mgtSubnets).map(subnet => subnet.id),
     ingress: defaultNACLRules,
     egress: defaultNACLRules,
     tags: getTags('nacl', 'default')
   });
 
   tfg.resource('aws_network_acl', 'db', {
-    vpc_id: vpc.attr('id'),
-    subnet_ids: dbSubnets.map(subnet => subnet.attr('id')),
+    vpc_id: vpc.id,
+    subnet_ids: dbSubnets.map(subnet => subnet.id),
     ingress: dbNACLRules,
     egress: dbNACLRules,
     tags: getTags('nacl', 'db')
@@ -245,7 +226,7 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
     tfg.resource('aws_security_group', `${tier.name}-default`, {
       name: `fw-${tier.name}-default`,
       description: `Default for ${tier.name} tier`,
-      vpc_id: vpc.attr('id'),
+      vpc_id: vpc.id,
       ingress: sgIngress,
       egress: sgEgress,
       tags: getTags('sg', 'default', tier.name)
@@ -259,24 +240,24 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
   });
 
   const nat = tfg.resource('aws_nat_gateway', 'nat', {
-    allocation_id: natEip.attr('id'),
-    subnet_id: publicSubnets[0].attr('id'),
+    allocation_id: natEip.id,
+    subnet_id: publicSubnets[0].id,
     tags: getTags('nat')
   });
 
   const rtNat = tfg.resource('aws_route_table', 'nat', {
-    vpc_id: vpc.attr('id'),
+    vpc_id: vpc.id,
     route: {
       cidr_block: '0.0.0.0/0',
-      gateway_id: nat.attr('id')
+      gateway_id: nat.id
     },
     tags: getTags('rt', 'nat')
   });
 
   gutSubnets.forEach(subnet => {
     tfg.resource('aws_route_table_association', `nat-${subnet.name}`, {
-      subnet_id: subnet.attr('id'),
-      route_table_id: rtNat.attr('id')
+      subnet_id: subnet.id,
+      route_table_id: rtNat.id
     });
   });
 
@@ -303,22 +284,17 @@ const createTerraformGenerator = (version: TerraformVersion): TerraformGenerator
 
 const outputDir = path.join('test', '__output__');
 
-test('VPC Project 0.11', () => {
-  const tfg = createTerraformGenerator('0.11');
+test('Base', () => {
+  const tfg = createTerraformGenerator();
+
+  expect(tfg.getArguments()).toMatchSnapshot();
+  expect(tfg.getBlocks()).toMatchSnapshot();
+  expect(tfg.getVars()).toMatchSnapshot();
   expect(tfg.generate()).toMatchSnapshot();
 
   tfg.write({ dir: outputDir });
-  const configuration = fs.readFileSync(path.join(outputDir, 'terraform.tf'), 'utf8');
-  expect(configuration).toMatchSnapshot();
-});
-
-test('VPC Project 0.12', () => {
-  const tfg = createTerraformGenerator('0.12');
-  expect(tfg.generate()).toMatchSnapshot();
-
-  tfg.write({ dir: outputDir });
-  const configuration = fs.readFileSync(path.join(outputDir, 'terraform.tf'), 'utf8');
-  expect(configuration).toMatchSnapshot();
+  const tf = fs.readFileSync(path.join(outputDir, 'terraform.tf'), 'utf8');
+  expect(tf).toMatchSnapshot();
 });
 
 afterAll(() => {

@@ -1,4 +1,4 @@
-import { Resource, Attribute, map, arg, heredoc, fn } from '../src';
+import { Resource, Attribute, arg, heredoc, fn, map, list } from '../src';
 
 export const resource = new Resource('type', 'name', { test: true });
 
@@ -18,10 +18,9 @@ export const arg1 = {
   arg10: ['e', 4, true, attr, resource],
   arg11: arg('arg'),
   arg12: arg(attr),
-  arg13: arg('as is', true),
-  arg14: heredoc('heredoc'),
-  arg15: fn('fn', 1, 2, 3),
-  arg16: fn('fn', attr, attr, attr)
+  arg13: heredoc('heredoc'),
+  arg14: fn('fn', 1, 2, 3),
+  arg15: fn('fn', attr, attr, attr)
 };
 
 export const arg2 = {
@@ -36,5 +35,6 @@ export const arg3 = {
 
 export const arg4 = {
   ...arg3,
-  arg102: map(arg3)
+  arg102: map(arg3),
+  arg103: list(arg3, arg3, arg3)
 };

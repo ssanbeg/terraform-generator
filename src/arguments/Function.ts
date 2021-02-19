@@ -1,11 +1,11 @@
 import { Argument } from '..';
-import TerraformGeneratorUtils from '../TerraformGeneratorUtils';
+import { Util } from '../Util';
 
-export default class Function extends Argument {
+export class Function extends Argument {
 
   /**
    * Construct function argument.
-   * 
+   *
    * @param name function name
    * @param args function arguments
    */
@@ -23,7 +23,7 @@ export default class Function extends Argument {
 
     let str = `${fn}(`;
     args.forEach((arg, i) => {
-      str += TerraformGeneratorUtils.argumentValueToString(null, arg);
+      str += Util.argumentValueToString(arg);
       if (i < args.length - 1) {
         str += ', ';
       }
@@ -36,8 +36,9 @@ export default class Function extends Argument {
 
 /**
  * Convenient function to construct new function.
- * 
+ *
  * @param name function name
  * @param args function arguments
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const fn = (name: string, ...args: any[]): Function => new Function(name, ...args);

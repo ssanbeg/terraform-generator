@@ -1,21 +1,21 @@
 import { Argument } from '..';
 
-export default class Heredoc extends Argument {
+export class Heredoc extends Argument {
 
   /**
    * Construct heredoc argument.
-   * 
-   * @param str string
+   *
+   * @param content string or object, object will be stringify
    */
-  constructor(str: string) {
-    super(`<<EOT\n${str}\nEOT`, true);
+  constructor(content: string | Record<any, any>) {
+    super(`<<EOT\n${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}\nEOT\n`);
   }
 
 }
 
 /**
  * Convenient function to construct new heredoc.
- * 
- * @param str string
+ *
+ * @param content string or object, object will be stringify
  */
-export const heredoc = (str: string): Heredoc => new Heredoc(str);
+export const heredoc = (content: string | Record<any, any>): Heredoc => new Heredoc(content);

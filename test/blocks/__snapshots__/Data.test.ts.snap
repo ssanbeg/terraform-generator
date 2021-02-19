@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Backend 1`] = `
-"backend &tfgquot;name&tfgquot;{
+exports[`Data 1`] = `
+"data &tfgquot;type&tfgquot; &tfgquot;name&tfgquot;{
 arg0 = &tfgquot;a&tfgquot;
 arg1 = [
 &tfgquot;b&tfgquot;,

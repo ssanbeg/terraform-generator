@@ -1,20 +1,21 @@
-import { TerraformVersion, Attribute, Argument } from '..';
-import TerraformGeneratorUtils from '../TerraformGeneratorUtils';
+import { Attribute, Argument } from '..';
+import { Util } from '../Util';
 
-export default abstract class Block {
+export abstract class Block {
 
   readonly blockType: string;
   readonly blockNames: string[];
-  private readonly arguments: object;
+  private readonly arguments: Record<string, any>;
+  private innerBlocks: Block[];
 
   /**
    * Construct block.
-   * 
+   *
    * @param type type
    * @param names names
    * @param args arguments
    */
-  constructor(type: string, names: string[], args?: object) {
+  constructor(type: string, names: string[], args?: Record<string, any>, innerBlocks?: Block[]) {
     this.validateIdentifier(type);
     names.forEach(name => {
       this.validateIdentifier(name);
@@ -23,18 +24,19 @@ export default abstract class Block {
     this.blockType = type;
     this.blockNames = names;
     this.arguments = args ? args : {};
+    this.innerBlocks = innerBlocks ? innerBlocks : [];
   }
 
   /**
    * Get arguments.
    */
-  getArguments(): object {
+  getArguments(): Record<string, any> {
     return this.arguments;
   }
 
   /**
    * Get argument by key.
-   * 
+   *
    * @param key key
    */
   getArgument(key: string): any {
@@ -43,21 +45,21 @@ export default abstract class Block {
 
   /**
    * Set argument.
-   * 
+   *
    * @param key key
    * @param value value
    */
-  setArgument(key: string, value: any): Block {
+  setArgument(key: string, value: any): this {
     this.arguments[key] = value;
     return this;
   }
 
   /**
    * Set arguments.
-   * 
+   *
    * @param args arguments
    */
-  setArguments(args: object): Block {
+  setArguments(args: Record<string, any>): this {
     for (const key in args) {
       this.arguments[key] = args[key];
     }
@@ -66,28 +68,44 @@ export default abstract class Block {
 
   /**
    * Delete argument by key.
-   * 
+   *
    * @param key key
    */
-  deleteArgument(key: string): Block {
+  deleteArgument(key: string): this {
     delete this.arguments[key];
     return this;
   }
 
   /**
-   * To Terraform representation.
-   * 
-   * @param version Terraform version
+   * Get inner blocks.
    */
-  toTerraform(version: TerraformVersion): string {
+  protected getInnerBlocks(): Block[] {
+    return this.innerBlocks;
+  }
+
+  /**
+   * Set inner blocks.
+   */
+  protected setInnerBlocks(innerBlocks: Block[]): this {
+    this.innerBlocks = innerBlocks ? innerBlocks : [];
+    return this;
+  }
+
+  /**
+   * To Terraform representation.
+   */
+  toTerraform(): string {
     let str = this.blockType;
     this.blockNames.forEach(name => {
       str += ` "${name}"`;
     });
     str += '{\n';
-    str += TerraformGeneratorUtils.argumentsToString(version, this.arguments);
+    str += Util.argumentsToString(this.arguments);
+    this.innerBlocks.forEach(block => {
+      str += `${block.toTerraform().trim()}\n`;
+    });
     str += '}\n\n';
-    return str;
+    return Util.escape(str);
   }
 
   /**
@@ -97,10 +115,17 @@ export default abstract class Block {
 
   /**
    * Get block's attribute.
-   * 
+   *
    * @param name attribute name
    */
   abstract attr(name: string): Attribute;
+
+  /**
+   * Block's id attribute.
+   */
+  get id(): Attribute {
+    return this.attr('id');
+  }
 
   private validateIdentifier(identifier: string): void {
     if (!identifier.match(/^[a-zA-Z_\-]{1}[0-9a-zA-Z_\-]*$/)) {

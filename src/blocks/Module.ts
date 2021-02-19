@@ -1,17 +1,17 @@
 import { Block, Argument, Attribute } from '..';
 
-export default class Module extends Block {
+export class Module extends Block {
 
   readonly name: string;
 
   /**
    * Construct module.
    * Refer to Terraform documentation on what can be put as arguments.
-   * 
+   *
    * @param name name
    * @param args arguments
    */
-  constructor(name: string, args?: object) {
+  constructor(name: string, args?: Record<string, any>) {
     super('module', [name], args);
 
     this.name = name;

@@ -1,21 +1,21 @@
-export default class Map {
+export class Map {
 
-  readonly args: object;
+  readonly arguments: Record<string, any>;
 
   /**
    * Construct map.
-   * 
+   *
    * @param args map values
    */
-  constructor(args: object) {
-    this.args = args;
+  constructor(args: Record<string, any>) {
+    this.arguments = args;
   }
 
 }
 
 /**
  * Convenient function to construct new map.
- * 
+ *
  * @param args map values
  */
-export const map = (args: object): Map => new Map(args);
+export const map = (args: Record<string, any>): Map => new Map(args);

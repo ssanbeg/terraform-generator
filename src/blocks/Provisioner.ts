@@ -1,27 +1,24 @@
 import { Block, Argument, Attribute } from '..';
 
-export class Provider extends Block {
+export class Provisioner extends Block {
 
   readonly type: string;
 
   /**
-   * Construct provider.
+   * Construct provisioner.
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
    * @param args arguments
    */
   constructor(type: string, args?: Record<string, any>) {
-    super('provider', [type], args);
+    super('provisioner', [type], args);
 
     this.type = type;
   }
 
   asArgument(): Argument {
-    if (this.getArgument('alias')) {
-      return new Argument(`${this.type}.${this.getArgument('alias')}`);
-    }
-    throw new Error('Provider has no alias.');
+    throw new Error('Inaccessible function.');
   }
 
   attr(_name: string): Attribute {

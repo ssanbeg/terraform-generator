@@ -1,8 +1,7 @@
-# **terraform-generator** 
+# **terraform-generator**
 
 [![npm package](https://img.shields.io/npm/v/terraform-generator)](https://www.npmjs.com/package/terraform-generator)
 [![npm downloads](https://img.shields.io/npm/dt/terraform-generator)](https://www.npmjs.com/package/terraform-generator)
-[![npm dependencies](https://img.shields.io/librariesio/release/npm/terraform-generator)](https://www.npmjs.com/package/terraform-generator)
 [![GitHub test](https://github.com/ahzhezhe/terraform-generator/workflows/test/badge.svg?branch=master)](https://github.com/ahzhezhe/terraform-generator)
 [![GitHub issues](https://img.shields.io/github/issues/ahzhezhe/terraform-generator)](https://github.com/ahzhezhe/terraform-generator)
 
@@ -12,7 +11,7 @@ You do not need to have Terraform installed to use this module.
 
 The end result of using this module is Terraform configurations in plain text, you will need to write the text  into a file (terraform-generator does provide an utility function to write the file for you) and execute it yourself.
 
-Currently support generating configurations for Terraform version 0.11 and 0.12.
+Currently support generating configurations for Terraform version >= 0.12.
 
 ## **Benefit**
 
@@ -20,9 +19,11 @@ Make use of all Javascript programming features (some of which is not available 
 
 You can easily maintain your infra in Javascript/Typescript.
 
-You don't need to use Terraform variables, you can use your own Javascript/JSON variables or use dot env. 
+You don't need to use Terraform variables, you can use your own Javascript/JSON variables or use dotenv.
 
 You don't need to use Terraform modules for reusable resource creations, you can make use of Javascript functions.
+
+You can incorporate other Node.js libraries to facilitate your work.
 
 ## **Limitation**
 
@@ -40,10 +41,15 @@ npm install terraform-generator
 ```javascript
 import TerraformGenerator, { Resource, map, fn } from 'terraform-generator';
 ```
+or
+```javascript
+const TFG = require('terraform-generator');
+const { default: TerraformGenerator, Resource, map, fn } = TFG;
+```
 
 ### **Initialize TerraformGenerator**
 ```javascript
-const tfg = new TerraformGenerator({ version: '0.12' }, {
+const tfg = new TerraformGenerator({
   required_version: '>= 0.12'
 });
 ```
@@ -64,7 +70,7 @@ const vpc = tfg.resource('aws_vpc', 'vpc', {
 
 ### **Convert resource to data source**
 ```javascript
-import { vpc as vpcDS } from 'other-terraform-project';
+import { vpc as vpcDS } from 'other-terraform-generator-configuration';
 
 const vpc = tfg.dataFromResource(vpcDS, null, ['cidr_block', ['tags', 'tag']]);
 ```
@@ -92,6 +98,14 @@ const vpc = tfg.dataFromResource(vpcDS, null, ['cidr_block', ['tags', 'tag']]);
       arg1: 'str'
     }
   ],
+  objectListForVariable: list(
+    {
+      arg1: 'str'
+    },
+    {
+      arg1: 'str'
+    }
+  ),
   map: map({
     arg1: 'str',
     arg2: 123,
@@ -102,31 +116,62 @@ const vpc = tfg.dataFromResource(vpcDS, null, ['cidr_block', ['tags', 'tag']]);
   heredoc: heredoc(`line1
                         line2
                         line3`),
+  heredocJson: heredoc({
+    arg1: 'str',
+    arg2: 123,
+    arg3: true
+  }),
   function1: fn('max', 5, 12, 19),
   function2: fn('sort', 'a', block.attr('attrName'), 'c'),
-  custom1: arg('max(5, 12, 9)'),
-  custom2: arg('as is', true) // it will be printed as is, without extra symbol, quotes and whatnot, regardless of Terraform version
+  functionElement: fn('tolist', ['a', 'b', 'c']).element(0),
+  custom: arg('max(5, 12, 9)'),
+  interpolation: `str-${block.attr('attrName')}`
 }
 ```
 
 ### **Attributes**
 ```javascript
-block.attr('id')                 // block id, string
-block.attr('subnets')            // subnet objects, object list
-block.attr('subnets.*.id')       // subnet ids, string list
-block.attr('subnets.*.id[0]')    // first subnet id, string
+block.attr('id')                                      // block id, string
+block.id                                              // convenience getter function, same as attr('id')
+block.attr('subnets')                                 // subnet objects, object list
+block.attr('subnets.*.id')                            // subnet ids, string list
+block.attr('subnets').attr('*').attr('id')            // same as above
+block.attr('subnets.*.id[0]')                         // first subnet id, string
+block.attr('subnets').attr('*').attr('id').element(0) // same as above
+```
+
+### **Variables**
+```javascript
+// You can directly add multiple variable values.
+tfg.addVars({
+  var1: 123,
+  var2: 'abc'
+});
+
+// You can also add single variable value while adding variable block to your configuration.
+tfg.variable('password', {
+  type: 'string'
+}, 'p@ssW0rd');
+```
+
+### **Merge multiple configurations**
+```javascript
+// You can split your configuration into multiple files and merge them before you generate the final outcome.
+tfg.merge(tfg2, tfg3);
 ```
 
 ### **Generate Terraform configuration**
 ```javascript
 // Generate Terraform configuration as string
-tfg.generate();
+const result = tfg.generate();
+console.log(result.tf);
+console.log(result.tfvars);
 
 // Write Terraform configuration to a file
-// Default dir is .
-// Default filename is terraform.tf
-// Default format is false, if format is true, Terraform needs to be installed
-tfg.write({ dir: 'outputDir', filename: 'output.tf', format: true });
+tfg.write({
+  dir: 'outputDir',
+  format: true
+});
 ```
 
 ## **Example**
@@ -180,7 +225,7 @@ const getTags = (type: string, name?: string): Map => new Map({
 });
 
 // Start writing Terraform configuration
-const tfg = new TerraformGenerator({ version: '0.12' });
+const tfg = new TerraformGenerator();
 
 // Configure provider
 tfg.provider('aws', {
@@ -207,7 +252,7 @@ configs.tiers.forEach(tier => {
   tier.subnetCidrs.forEach((cidr, i) => {
     const name = `${tier.name}${i}`;
     const subnet = tfg.resource('aws_subnet', `subnet_${name}`, {
-      vpc_id: vpc.attr('id'),
+      vpc_id: vpc.id,
       cidr_block: cidr,
       availability_zone: getAvailabilityZone(i),
       tags: getTags('subnet', name)
@@ -219,9 +264,9 @@ configs.tiers.forEach(tier => {
 // Output all subnet ids
 tfg.output('subnets', {
   value: map({
-    webSubnets: subnets.web.map(subnet => subnet.attr('id')),
-    appSubnets: subnets.app.map(subnet => subnet.attr('id')),
-    dbSubnets: subnets.db.map(subnet => subnet.attr('id'))
+    webSubnets: subnets.web.map(subnet => subnet.id),
+    appSubnets: subnets.app.map(subnet => subnet.id),
+    dbSubnets: subnets.db.map(subnet => subnet.id)
   })
 });
 

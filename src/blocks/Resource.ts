@@ -1,18 +1,17 @@
-import { Block, Argument, Attribute, Data, Map } from '..';
+import { Block, Argument, Attribute, Data, Map, Provisioner } from '..';
 
-/**
- * Options to convert resource into data source.
- * 
- * @param type new type of the data source
- * @param name new name of the data source
- * 
- */
 export interface ResourceToDataOptions {
+  /**
+   * New type of the data source.
+   */
   type?: string;
+  /**
+   * New name of the data source.
+   */
   name?: string;
 }
 
-export default class Resource extends Block {
+export class Resource extends Block {
 
   readonly type: string;
   readonly name: string;
@@ -20,13 +19,14 @@ export default class Resource extends Block {
   /**
    * Construct resource.
    * Refer to Terraform documentation on what can be put as type & arguments.
-   * 
+   *
    * @param type type
    * @param name name
    * @param args arguments
+   * @param provisioners provisioners
    */
-  constructor(type: string, name: string, args?: object) {
-    super('resource', [type, name], args);
+  constructor(type: string, name: string, args?: Record<string, any>, provisioners?: Provisioner[]) {
+    super('resource', [type, name], args, provisioners);
 
     this.type = type;
     this.name = name;
@@ -41,15 +41,30 @@ export default class Resource extends Block {
   }
 
   /**
+   * Get provisioners.
+   */
+  getProvisioners(): Provisioner[] {
+    return this.getInnerBlocks() as Provisioner[];
+  }
+
+  /**
+   * Set provisioners.
+   */
+  setProvisioners(provisioners: Provisioner[]): this {
+    this.setInnerBlocks(provisioners);
+    return this;
+  }
+
+  /**
    * Convert resource into data source.
    * Refer to Terraform documentation on what can be put as arguments.
-   * 
+   *
    * @param options options
    * @param argNames names of resource arguments to converted into data source arguments;
    * use array for name mapping, position 0 = original resource's argument name, position 1 = mapped data source's argument name
    * @param args extra arguments
    */
-  toData(options: ResourceToDataOptions, argNames: (string | [string, string])[], args?: object): Data {
+  toData(options: ResourceToDataOptions, argNames: (string | [string, string])[], args?: Record<string, any>): Data {
     const type = (options && options.type) ? options.type : this.type;
     const name = (options && options.name) ? options.name : this.name;
 
@@ -75,10 +90,10 @@ export default class Resource extends Block {
 
       const arg = this.getArgument(actualArgName);
       if (arg instanceof Map) {
-        for (const mapArgName in arg.args) {
+        for (const mapArgName in arg.arguments) {
           args['filter'].push({
             name: `${newArgName}:${mapArgName}`,
-            values: [arg.args[mapArgName]]
+            values: [arg.arguments[mapArgName]]
           });
         }
       } else if (!args[newArgName]) {
