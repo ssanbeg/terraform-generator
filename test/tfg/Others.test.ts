@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import fs from 'fs';
 import path from 'path';
-import TerraformGenerator, { map, Provisioner, arg } from '../../src';
+import { arg } from '../../src/arguments';
+import { Provisioner } from '../../src/blocks';
+import { TerraformGenerator } from '../../src/TerraformGenerator';
+import { map } from '../../src/types';
 
 const createTerraformGenerator = (): TerraformGenerator => {
   const tfg = new TerraformGenerator();
@@ -28,7 +32,7 @@ const createTerraformGenerator = (): TerraformGenerator => {
     })
   });
 
-  tfg.dataFromResource(r, null, ['cidr_block', ['tags', 'tag']]);
+  tfg.dataFromResource(r, undefined, ['cidr_block', ['tags', 'tag']]);
   tfg.dataFromResource(r, { name: 'test2' }, ['cidr_block', ['tags', 'tag']]);
 
   tfg.resource('innerBlock', 'innerBlock', {

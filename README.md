@@ -3,7 +3,8 @@
 [![npm package](https://img.shields.io/npm/v/terraform-generator)](https://www.npmjs.com/package/terraform-generator)
 [![npm downloads](https://img.shields.io/npm/dt/terraform-generator)](https://www.npmjs.com/package/terraform-generator)
 [![GitHub test](https://github.com/ahzhezhe/terraform-generator/workflows/test/badge.svg?branch=master)](https://github.com/ahzhezhe/terraform-generator)
-[![GitHub issues](https://img.shields.io/github/issues/ahzhezhe/terraform-generator)](https://github.com/ahzhezhe/terraform-generator)
+[![GitHub issues](https://img.shields.io/github/issues/ahzhezhe/terraform-generator)](https://github.com/ahzhezhe/terraform-generator/issues)
+[![GitHub license](https://img.shields.io/github/license/ahzhezhe/terraform-generator)](https://github.com/ahzhezhe/terraform-generator/blob/master/LICENSE)
 
 Use Node.js to generate Terraform configurations.
 
@@ -12,6 +13,8 @@ You do not need to have Terraform installed to use this module.
 The end result of using this module is Terraform configurations in plain text, you will need to write the text  into a file (terraform-generator does provide an utility function to write the file for you) and execute it yourself.
 
 Currently support generating configurations for Terraform version >= 0.12.
+
+[API Documentation](https://ahzhezhe.github.io/docs/terraform-generator-v4/index.html)
 
 ## **Benefit**
 
@@ -39,12 +42,11 @@ npm install terraform-generator
 
 ### **Import**
 ```javascript
-import TerraformGenerator, { Resource, map, fn } from 'terraform-generator';
+import { TerraformGenerator, Resource, map, fn } from 'terraform-generator';
 ```
 or
 ```javascript
-const TFG = require('terraform-generator');
-const { default: TerraformGenerator, Resource, map, fn } = TFG;
+const { TerraformGenerator, Resource, map, fn } = require('terraform-generator');
 ```
 
 ### **Initialize TerraformGenerator**

@@ -1,11 +1,16 @@
-import { Block, Argument, Attribute } from '..';
+import { Argument, Attribute } from '../arguments';
+import { Block } from '.';
 
+/**
+ * @category Block
+ */
 export class Provisioner extends Block {
 
   readonly type: string;
 
   /**
    * Construct provisioner.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -18,11 +23,11 @@ export class Provisioner extends Block {
   }
 
   asArgument(): Argument {
-    throw new Error('Inaccessible function.');
+    throw new Error('Inaccessible method.');
   }
 
   attr(_name: string): Attribute {
-    throw new Error('Inaccessible function.');
+    throw new Error('Inaccessible method.');
   }
 
 }

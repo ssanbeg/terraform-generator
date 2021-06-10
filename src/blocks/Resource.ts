@@ -1,5 +1,10 @@
-import { Block, Argument, Attribute, Data, Map, Provisioner } from '..';
+import { Argument, Attribute } from '../arguments';
+import { Map } from '../types';
+import { Block, Data, Provisioner } from '.';
 
+/**
+ * @category Block
+ */
 export interface ResourceToDataOptions {
   /**
    * New type of the data source.
@@ -11,6 +16,9 @@ export interface ResourceToDataOptions {
   name?: string;
 }
 
+/**
+ * @category Block
+ */
 export class Resource extends Block {
 
   readonly type: string;
@@ -18,6 +26,7 @@ export class Resource extends Block {
 
   /**
    * Construct resource.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -50,13 +59,14 @@ export class Resource extends Block {
   /**
    * Set provisioners.
    */
-  setProvisioners(provisioners: Provisioner[]): this {
+  setProvisioners(provisioners: Provisioner[] | undefined): this {
     this.setInnerBlocks(provisioners);
     return this;
   }
 
   /**
    * Convert resource into data source.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param options options
@@ -64,9 +74,9 @@ export class Resource extends Block {
    * use array for name mapping, position 0 = original resource's argument name, position 1 = mapped data source's argument name
    * @param args extra arguments
    */
-  toData(options: ResourceToDataOptions, argNames: (string | [string, string])[], args?: Record<string, any>): Data {
-    const type = (options && options.type) ? options.type : this.type;
-    const name = (options && options.name) ? options.name : this.name;
+  toData(options: ResourceToDataOptions | undefined, argNames: (string | [string, string])[], args?: Record<string, any>): Data {
+    const type = options?.type ?? this.type;
+    const name = options?.name ?? this.name;
 
     if (!args) {
       args = {};

@@ -1,5 +1,9 @@
-import { Block, Argument, Attribute } from '..';
+import { Argument, Attribute } from '../arguments';
+import { Block } from '.';
 
+/**
+ * @category Block
+ */
 export class Data extends Block {
 
   readonly type: string;
@@ -7,6 +11,7 @@ export class Data extends Block {
 
   /**
    * Construct data source.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type

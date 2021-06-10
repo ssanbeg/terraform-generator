@@ -1,6 +1,9 @@
-import { Argument } from '..';
 import { Util } from '../Util';
+import { Argument } from '.';
 
+/**
+ * @category Argument
+ */
 export class Function extends Argument {
 
   /**
@@ -10,10 +13,10 @@ export class Function extends Argument {
    * @param args function arguments
    */
   constructor(name: string, ...args: any[]) {
-    super(Function.constructArgument(name, ...args));
+    super(Function.#constructArgument(name, ...args));
   }
 
-  private static constructArgument(fn: string, ...args: any[]): string {
+  static #constructArgument(fn: string, ...args: any[]): string {
     if (!fn || !fn.trim()) {
       throw new Error('Function name cannot be empty.');
     }
@@ -35,10 +38,12 @@ export class Function extends Argument {
 }
 
 /**
- * Convenient function to construct new function.
+ * Convenient function to construct new [[Function]].
  *
  * @param name function name
  * @param args function arguments
+ *
+ * @category Argument
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const fn = (name: string, ...args: any[]): Function => new Function(name, ...args);

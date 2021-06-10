@@ -1,9 +1,9 @@
 import { attr } from '..';
-import { Function, fn } from '../../src';
+import { Function, fn } from '../../src/arguments';
 import { Util } from '../../src/Util';
 
 test('Function invalid args', () => {
-  expect(() => new Function(null)).toThrow();
+  expect(() => new Function(null as unknown as string)).toThrow();
   expect(() => new Function('fn', null)).toThrow();
 });
 

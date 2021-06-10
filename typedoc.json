@@ -1,0 +1,17 @@
+{
+  "name": "terraform-generator - v5",
+  "out": "docs/terraform-generator-v5",
+  "entryPoints": [
+    "src/index.ts"
+  ],
+  "categoryOrder": [
+    "TerraformGenerator",
+    "Block",
+    "Argument",
+    "Type",
+    "*"
+  ],
+  "excludePrivate": true,
+  "disableSources": true,
+  "hideGenerator": true
+}

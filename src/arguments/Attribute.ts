@@ -1,5 +1,9 @@
-import { Argument, Block } from '..';
+import { Block } from '../blocks';
+import { Argument } from '.';
 
+/**
+ * @category Argument
+ */
 export class Attribute extends Argument {
 
   /**
@@ -9,10 +13,10 @@ export class Attribute extends Argument {
    * @param attrName attribute name
    */
   constructor(block: Block, attrName: string) {
-    super(Attribute.constructArgument(block, attrName));
+    super(Attribute.#constructArgument(block, attrName));
   }
 
-  private static constructArgument(block: Block, attrName: string): string {
+  static #constructArgument(block: Block, attrName: string): string {
     if (!block) {
       throw new Error('Attribute block cannot be null.');
     }
@@ -26,9 +30,11 @@ export class Attribute extends Argument {
 }
 
 /**
- * Convenient function to construct new block's attribute.
+ * Convenient function to construct new block's [[Attribute]].
  *
  * @param block block
  * @param name attribute name
+ *
+ * @category Argument
  */
 export const attr = (block: Block, name: string): Attribute => new Attribute(block, name);

@@ -2,72 +2,78 @@ import child_process from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import shell from 'shelljs';
+import { Block, Resource, Data, Module, Output, Provider, Variable, Backend, Provisioner, ResourceToDataOptions, Locals } from './blocks';
 import { Util } from './Util';
-import { Block, Resource, Data, Module, Output, Provider, Variable, Backend, Provisioner, ResourceToDataOptions, Locals } from '.';
 
 /**
- * @param dir directoty, default = .
- * @param tfFilename
- * @param tfvarsFilename
- * @param format
+ * @category TerraformGenerator
  */
 export interface WriteOptions {
   /**
    * Directory to write to.
+   *
    * Default = .
    */
   dir?: string;
   /**
    * Terraform filename, must ends with .tf.
+   *
    * Default = terraform.tf
    */
   tfFilename?: string;
   /**
    * Terraform variables filename, must ends with .tfvars.
+   *
    * Default = terraform.tfvars
    */
   tfvarsFilename?: string;
   /**
-   * Put true to use 'terraform fmt' to format the configuration, Terraform must be installed.
+   * Put `true` to use `terraform fmt` to format the configuration, Terraform must be installed.
+   *
    * If the terraform binary is named differently in your machine, put the binary name instead.
+   *
    * Default = false
    */
   format?: boolean | string;
 }
 
+/**
+ * @category TerraformGenerator
+ */
 export class TerraformGenerator {
 
-  private readonly arguments: Record<string, any>;
-  private readonly blocks: Block[] = [];
-  private variables: Record<string, any> = {};
+  readonly #arguments?: Record<string, any>;
+  readonly #blocks: Block[] = [];
+  #variables: Record<string, any> = {};
 
   /**
    * Construct Terraform generator.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param args arguments
    */
   constructor(args?: Record<string, any>) {
-    this.arguments = args;
+    this.#arguments = args;
   }
 
   /**
    * Generate Terraform configuration as string.
    */
-  generate(): { tf: string; tfvars: string } {
+  generate(): { tf: string; tfvars?: string } {
     return {
-      tf: this.generateTf(),
-      tfvars: Object.keys(this.variables).length > 0 ? this.generateTfvars() : null
+      tf: this.#generateTf(),
+      tfvars: Object.keys(this.#variables).length > 0 ? this.#generateTfvars() : undefined
     };
   }
 
-  private generateTf(): string {
+  #generateTf(): string {
     let str = '';
 
-    if (this.arguments || this.blocks.filter(block => block instanceof Backend).length > 0) {
+    if (this.#arguments || this.#blocks.filter(block => block instanceof Backend).length > 0) {
       str += 'terraform {\n';
-      str += Util.argumentsToString(this.arguments);
-      this.blocks.forEach(block => {
+      str += Util.argumentsToString(this.#arguments);
+      this.#blocks.forEach(block => {
         if (block instanceof Backend) {
           str += block.toTerraform();
         }
@@ -75,7 +81,7 @@ export class TerraformGenerator {
       str += '}\n\n';
     }
 
-    this.blocks.forEach(block => {
+    this.#blocks.forEach(block => {
       if (!(block instanceof Backend)) {
         str += block.toTerraform();
       }
@@ -84,11 +90,11 @@ export class TerraformGenerator {
     return Util.unescape(str);
   }
 
-  private generateTfvars(): string {
+  #generateTfvars(): string {
     let str = '';
 
-    Object.keys(this.variables).forEach(key => {
-      str += Util.argumentsToString({ [key]: this.variables[key] });
+    Object.keys(this.#variables).forEach(key => {
+      str += Util.argumentsToString({ [key]: this.#variables[key] });
       str += '\n';
     });
 
@@ -141,12 +147,13 @@ export class TerraformGenerator {
    * @param blocks blocks
    */
   addBlocks(...blocks: Block[]): this {
-    blocks.forEach(block => this.blocks.push(block));
+    blocks.forEach(block => this.#blocks.push(block));
     return this;
   }
 
   /**
    * Add provider into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -160,6 +167,7 @@ export class TerraformGenerator {
 
   /**
    * Add resource into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -182,7 +190,7 @@ export class TerraformGenerator {
    * use array for name mapping, position 0 = original resource's argument name, position 1 = mapped data source's argument name
    * @param args extra arguments
    */
-  dataFromResource(resource: Resource, options: ResourceToDataOptions, argNames: (string | [string, string])[],
+  dataFromResource(resource: Resource, options: ResourceToDataOptions | undefined, argNames: (string | [string, string])[],
     args?: Record<string, any>): Data {
     const block = resource.toData(options, argNames, args);
     this.addBlocks(block);
@@ -191,6 +199,7 @@ export class TerraformGenerator {
 
   /**
    * Add data source into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -205,6 +214,7 @@ export class TerraformGenerator {
 
   /**
    * Add module into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param name name
@@ -218,6 +228,7 @@ export class TerraformGenerator {
 
   /**
    * Add output into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param name name
@@ -231,6 +242,7 @@ export class TerraformGenerator {
 
   /**
    * Add locals into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param args arguments
@@ -243,6 +255,7 @@ export class TerraformGenerator {
 
   /**
    * Add variable into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as arguments.
    *
    * @param name name
@@ -260,6 +273,7 @@ export class TerraformGenerator {
 
   /**
    * Add backend into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -273,6 +287,7 @@ export class TerraformGenerator {
 
   /**
    * Add provisioner into Terraform.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -290,8 +305,8 @@ export class TerraformGenerator {
    * @param variables variables
    */
   addVars(variables: Record<string, any>): this {
-    this.variables = {
-      ...this.variables,
+    this.#variables = {
+      ...this.#variables,
       ...variables
     };
     return this;
@@ -313,22 +328,22 @@ export class TerraformGenerator {
   /**
    * Get arguments.
    */
-  getArguments(): Record<string, any> {
-    return this.arguments;
+  getArguments(): Record<string, any> | undefined {
+    return this.#arguments;
   }
 
   /**
    * Get blocks.
    */
   getBlocks(): Block[] {
-    return this.blocks;
+    return this.#blocks;
   }
 
   /**
    * Get variables.
    */
   getVars(): Record<string, any> {
-    return this.variables;
+    return this.#variables;
   }
 
 }

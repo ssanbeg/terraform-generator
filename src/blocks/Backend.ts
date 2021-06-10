@@ -1,11 +1,16 @@
-import { Block, Argument, Attribute } from '..';
+import { Argument, Attribute } from '../arguments';
+import { Block } from '.';
 
+/**
+ * @category Block
+ */
 export class Backend extends Block {
 
   readonly type: string;
 
   /**
    * Construct backend.
+   *
    * Refer to Terraform documentation on what can be put as type & arguments.
    *
    * @param type type
@@ -22,7 +27,7 @@ export class Backend extends Block {
   }
 
   attr(_name: string): Attribute {
-    throw new Error('Inaccessible function.');
+    throw new Error('Inaccessible method.');
   }
 
 }
